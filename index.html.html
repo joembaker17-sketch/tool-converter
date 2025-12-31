@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tool Converter PRO v3.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#0c1020;
+  --card:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.15);
+  --accent:#7cf5c2;
+  --accent2:#5aa9ff;
+  --text:#e8ecf1;
+  --muted:#9aa4b2;
+}
+
+.light{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#d8deea;
+  --text:#0b1020;
+  --muted:#5f6b7a;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(135deg,var(--bg),#111);
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Roboto,monospace;
+}
+
+.app{
+  max-width:1200px;
+  margin:auto;
+  padding:24px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.header h1{
+  margin:0;
+  font-size:28px;
+}
+
+.badge{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#000;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.card{
+  background:var(--card);
+  backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 25px 60px rgba(0,0,0,.35);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+textarea{
+  width:100%;
+  min-height:260px;
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  font-family:monospace;
+  resize:vertical;
+}
+
+textarea:focus{outline:none;border-color:var(--accent2)}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+button{
+  padding:10px 18px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+  font-weight:600;
+  transition:.25s;
+}
+
+button.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#000;
+  border:none;
+}
+
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+
+.stats{
+  margin-top:14px;
+  display:flex;
+  gap:16px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.drop{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+footer{
+  margin-top:20px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>Tool Converter</h1>
+    <div>
+      <button onclick="toggleTheme()">🌗</button>
+      <span class="badge">PRO v3.0</span>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="drop" id="drop">
+      Drag & Drop HTML file here
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Input HTML</label>
+        <textarea id="input"></textarea>
+      </div>
+      <div>
+        <label>Output</label>
+        <textarea id="output"></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+  <button class="primary" onclick="analyze()">Generate</button>
+  <button onclick="copy()">Copy</button>
+  <button onclick="clearAll()">Clear</button>
+</div>
+
+
+    <div class="stats" id="stats"></div>
+
+  </div>
+
+  <footer>
+    
+  </footer>
+
+</div>
+
+<script>
+// ---------- THEME ----------
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  localStorage.theme=document.body.className;
+}
+if(localStorage.theme) document.body.className=localStorage.theme;
+
+// ---------- ANALYZE ----------
+function analyzeClass(str){
+  if(/^\[\d+_\d+_.+\]$/.test(str)) return str;
+  const len=str.length;
+  let t='';
+  if(/[0-9]/.test(str)) t+='N';
+  if(/[A-Z]/.test(str)) t+='A';
+  if(/[a-z]/.test(str)) t+='a';
+  return `[${len}_${len}_${t}]`;
+}
+
+function analyze(){
+  let html=input.value;
+  let count=0;
+  html=html.replace(/class="([^"]+)"/g,(m,c)=>{
+    const parts=c.split(/\s+/).map(x=>{
+      count++;
+      return analyzeClass(x);
+    });
+    return `class="${parts.join(' ')}"`;
+  });
+  output.value=html;
+  stats.textContent=`Generated items: ${count}`;
+}
+
+// ---------- GENERATE ----------
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+function gen(rule){
+  let min=1,max=1,chars='';
+  const m=rule.match(/\[(\d+)_(\d+)_/);
+  if(m){min=+m[1];max=+m[2];}
+  if(rule.includes('N')) chars+='0123456789';
+  if(rule.includes('A')) chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if(rule.includes('a')) chars+='abcdefghijklmnopqrstuvwxyz';
+  let len=rand(min,max),o='';
+  for(let i=0;i<len;i++) o+=chars[Math.floor(Math.random()*chars.length)];
+  return o;
+}
+
+function generate(){
+  let html=input.value;
+  let count=0;
+  html=html.replace(/\[(\d+_\d+_[NAa]+)\]/g,m=>{
+    count++;
+    return gen(m);
+  });
+  output.value=html;
+  stats.textContent=`Rules generated: ${count}`;
+}
+
+// ---------- UTILS ----------
+function copy(){
+  navigator.clipboard.writeText(output.value);
+  alert('Copied ✅');
+}
+function clearAll(){
+  input.value='';
+  output.value='';
+  stats.textContent='';
+}
+
+// ---------- DRAG & DROP ----------
+drop.ondragover=e=>{e.preventDefault();drop.style.borderColor='var(--accent2)'}
+drop.ondragleave=e=>drop.style.borderColor='var(--border)'
+drop.ondrop=e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>input.value=r.result;
+  r.readAsText(f);
+}
+</script>
+
+</body>
+</html>

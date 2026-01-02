@@ -347,7 +347,7 @@ function generate(){
   });
   html=html.replace(/\b(class|id|data-[\w-]+)="([^"]+)"/g,(m,a,v)=>`${a}="${rep(v)}"`);
   html=html.replace(/>([^<]+)</g,(m,t)=>`>${rep(t)}<`);
-  html=html.replace(/(^|\n)([^\n<]+)/g,(m,p,t)=>p+rep(t));
+  html=html.replace(/(^|\n)([^\n<]+)/g,(m,p,t)=>p+convertPlainLine(t));
   output.value=html;
   stats.textContent=`Generated items: ${count}`;
   copyBtn.disabled=!html.trim();
@@ -389,6 +389,12 @@ function toggleTheme(){
     :'fa-solid fa-moon';
 }
 renderHistory();
+
+function convertPlainLine(line){
+  if(/[<>\[\]]/.test(line)) return line;
+  return line.replace(/\b([A-Za-z0-9]+)\b/g, t => tokenToRule(t));
+}
+
 </script>
 
 </body>

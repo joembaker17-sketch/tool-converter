@@ -336,27 +336,56 @@ function renderHistory(){
 }
 
 function generate(){
-  let html=input.value,count=0;
-  html=html.replace(
+  let html = input.value, count = 0;
+
+  // 1️FIX: token at line start before ##
+  html = html.replace(
+    /(^|\n)([A-Za-z0-9]+)(?=##)/g,
+    (m,p,token)=>p+tokenToRule(token)
+  );
+
+  // 2️FIX: token after ##__#__ or similar
+  html = html.replace(
     /(##_*#_*[\{]?)([A-Za-z0-9]+)/g,
     (m,sep,token)=>sep+tokenToRule(token)
   );
-  const rep=s=>s.replace(/\b[A-Za-z0-9.]{2,}\b/g,t=>{
-    if(shouldConvert(t)){count++;return convertToken(t)}
+
+  // helper
+  const rep = s => s.replace(/\b[A-Za-z0-9.]{2,}\b/g, t => {
+    if (shouldConvert(t)) {
+      count++;
+      return convertToken(t);
+    }
     return t;
   });
-  html=html.replace(/\b(class|id|data-[\w-]+)="([^"]+)"/g,(m,a,v)=>`${a}="${rep(v)}"`);
-  html=html.replace(/>([^<]+)</g,(m,t)=>`>${rep(t)}<`);
-  html=html.replace(/(^|\n)([^\n<]+)/g,(m,p,t)=>p+convertPlainLine(t));
-  output.value=html;
-  stats.textContent=`Generated items: ${count}`;
-  copyBtn.disabled=!html.trim();
-  if(html.trim()){
+
+  // 3️attributes
+  html = html.replace(
+    /\b(class|id|data-[\w-]+)="([^"]+)"/g,
+    (m,a,v)=>`${a}="${rep(v)}"`
+  );
+
+  // 4️text between tags
+  html = html.replace(/>([^<]+)</g, (m,t)=>`>${rep(t)}<`);
+
+  // 5️plain lines (safe)
+  html = html.replace(
+    /(^|\n)([^\n<]+)/g,
+    (m,p,t)=> p + convertPlainLine(t)
+  );
+
+  output.value = html;
+  stats.textContent = `Generated items: ${count}`;
+  copyBtn.disabled = !html.trim();
+
+  if (html.trim()){
     history.unshift(html);
-    if(history.length>10)history.pop();
-    saveHistory();renderHistory();
+    if (history.length > 10) history.pop();
+    saveHistory();
+    renderHistory();
   }
 }
+
 
 function copyOut(){
   navigator.clipboard.writeText(output.value);

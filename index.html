@@ -345,10 +345,19 @@ function generate(){
   );
 
   // 2️FIX: token after ##__#__ or similar
-  html = html.replace(
-    /(##_*#_*[\{]?)([A-Za-z0-9]+)/g,
-    (m,sep,token)=>sep+tokenToRule(token)
-  );
+html = html.replace(
+  /(##_*#_*)(\{)?([A-Za-z0-9]+)(\})?/g,
+  (m, sep, openBrace, token, closeBrace) => {
+    //
+    if (openBrace && closeBrace) {
+      return sep + '{' + tokenToRule(token) + '}';
+    }
+    // 
+    return sep + tokenToRule(token).replace('[', '[_');
+  }
+);
+
+
 
   // helper
   const rep = s => s.replace(/\b[A-Za-z0-9.]{2,}\b/g, t => {

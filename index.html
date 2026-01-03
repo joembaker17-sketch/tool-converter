@@ -309,7 +309,7 @@ function tokenToRule(token){
   if(/[0-9]/.test(token))t+='N';
   if(/[A-Z]/.test(token))t+='A';
   if(/[a-z]/.test(token))t+='a';
-  return `[${l}_${l}_${t}]`;
+  return `[_${l}_${l}_${t}]`;
 }
 function convertToken(t){
   if(t.includes('.')) return t.split('.').map(tokenToRule).join('.');

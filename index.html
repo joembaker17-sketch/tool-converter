@@ -353,7 +353,7 @@ html = html.replace(
       return sep + '{' + tokenToRule(token) + '}';
     }
     // 
-    return sep + tokenToRule(token).replace('[', '[_');
+    return sep + tokenToRule(token);
   }
 );
 
@@ -437,3 +437,4 @@ function convertPlainLine(line){
 
 </body>
 </html>
+
